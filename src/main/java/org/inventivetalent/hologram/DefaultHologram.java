@@ -62,6 +62,10 @@ public class DefaultHologram extends CraftHologram {
 		}
 		try {
 			this.spawned = HologramAPI.spawn(this, getLocation().getWorld().getPlayers());
+			if(lineBelow != null)
+				HologramAPI.spawn(((DefaultHologram) this).lineBelow, getLocation().getWorld().getPlayers());
+			if(lineAbove != null)
+				HologramAPI.spawn(((DefaultHologram) this).lineAbove, getLocation().getWorld().getPlayers());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -72,6 +76,10 @@ public class DefaultHologram extends CraftHologram {
 		validateSpawned();
 		try {
 			this.spawned = (!HologramAPI.despawn(this, getLocation().getWorld().getPlayers()));
+			if(lineBelow != null)
+				HologramAPI.despawn(((DefaultHologram) this).lineBelow, getLocation().getWorld().getPlayers());
+			if(lineAbove != null)
+				HologramAPI.despawn(((DefaultHologram) this).lineAbove, getLocation().getWorld().getPlayers());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -158,7 +166,7 @@ public class DefaultHologram extends CraftHologram {
 		this.touchable = flag;
 		if (isSpawned()) {
 			try {
-				buildPackets(true);
+				buildTouch(false);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -167,7 +175,7 @@ public class DefaultHologram extends CraftHologram {
 	}
 
 	public boolean isTouchable() {
-		return (touchable) && (HologramAPI.packetsEnabled);
+		return touchable;
 	}
 
 	public void addTouchHandler(TouchHandler handler) {
@@ -221,7 +229,6 @@ public class DefaultHologram extends CraftHologram {
 		Hologram hologram = HologramAPI.createHologram(getLocation().subtract(0.0D, 0.25D, 0.0D), text);
 		this.lineBelow = hologram;
 		((DefaultHologram) hologram).lineAbove = this;
-
 		hologram.spawn();
 		return hologram;
 	}
@@ -257,7 +264,6 @@ public class DefaultHologram extends CraftHologram {
 		Hologram hologram = HologramAPI.createHologram(getLocation().add(0.0D, 0.25D, 0.0D), text);
 		this.lineAbove = hologram;
 		((DefaultHologram) hologram).lineBelow = this;
-
 		hologram.spawn();
 		return hologram;
 	}

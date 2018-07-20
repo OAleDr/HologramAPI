@@ -111,7 +111,7 @@ abstract class CraftHologram implements Hologram {
 
 			this.spawnPacketWitherSkull = ClassBuilder.buildWitherSkullSpawnPacket(witherSkull_1_7);
 			if (Minecraft.VERSION.olderThan(Minecraft.Version.v1_9_R1)) {
-				this.attachPacket = NMSClass.PacketPlayOutAttachEntity.getConstructor(Integer.TYPE, NMSClass.Entity, NMSClass.Entity).newInstance(0, horse_1_7, witherSkull_1_7 );
+				this.attachPacket = NMSClass.PacketPlayOutAttachEntity.getConstructor(int.class, NMSClass.Entity, NMSClass.Entity).newInstance(0, horse_1_7, witherSkull_1_7 );
 				AccessUtil.setAccessible(NMSClass.PacketPlayOutAttachEntity.getDeclaredField("b")).set(attachPacket, hologramIDs[1]);
 				AccessUtil.setAccessible(NMSClass.PacketPlayOutAttachEntity.getDeclaredField("c")).set(attachPacket, hologramIDs[0]);
 			} else {
@@ -124,60 +124,6 @@ abstract class CraftHologram implements Hologram {
 				this.teleportPacketHorse_1_7 = ClassBuilder.buildTeleportPacket(hologramIDs[1], getLocation().add(0.0D, 54.560000000000002D, 0.0D), true, false);
 			}
 			this.teleportPacketHorse_1_8 = ClassBuilder.buildTeleportPacket(hologramIDs[2], getLocation().add(0.0D, -2.25D, 0.0D), true, false);
-		}
-		if (isTouchable()) {
-			int size = getText() == null ? 1 : getText().length() / 2 / 3;
-			Object touchSlime = ClassBuilder.buildEntitySlime(world, getLocation().add(0.0D, -0.4D, 0.0D), size);
-			this.dataWatcherTouchSlime = AccessUtil.setAccessible(NMSClass.Entity.getDeclaredField("datawatcher")).get(touchSlime);
-
-			Object touchVehicle = null;
-			if ((HologramAPI.is1_8) && (!HologramAPI.useProtocolSupport)) {
-				touchVehicle = ClassBuilder.buildEntityArmorStand(world, getLocation().add(0.0D, -1.85D, 0.0D), null);
-				this.dataWatcherTouchVehicle = AccessUtil.setAccessible(NMSClass.Entity.getDeclaredField("datawatcher")).get(touchVehicle);
-
-				ClassBuilder.setupArmorStand(touchVehicle);
-			} else {
-				touchVehicle = ClassBuilder.buildEntityWitherSkull(world, getLocation().add(0.0D, -0.4D, 0.0D));
-				this.dataWatcherTouchVehicle = AccessUtil.setAccessible(NMSClass.Entity.getDeclaredField("datawatcher")).get(touchVehicle);
-
-				DataWatcher.setValue(dataWatcherTouchVehicle, 0, DataWatcher.V1_9.ValueType.ENTITY_FLAG, (byte) 32);
-			}
-			if (rebuild) {
-				AccessUtil.setAccessible(NMSClass.Entity.getDeclaredField("id")).set(touchSlime, touchIDs[0]);
-				AccessUtil.setAccessible(NMSClass.Entity.getDeclaredField("id")).set(touchVehicle, touchIDs[1]);
-
-				Field entityCountField = AccessUtil.setAccessible(NMSClass.Entity.getDeclaredField("entityCount"));
-				entityCountField.set(null, ((Integer) entityCountField.get(null)) - 2);
-			} else {
-				this.touchIDs = new int[] {
-						AccessUtil.setAccessible(NMSClass.Entity.getDeclaredField("id")).getInt(touchSlime),
-						AccessUtil.setAccessible(NMSClass.Entity.getDeclaredField("id")).getInt(touchVehicle) 
-				};
-			}
-			this.spawnPacketTouchSlime = ClassBuilder.buildSlimeSpawnPacket(touchSlime);
-			if (HologramAPI.is1_8 && !HologramAPI.useProtocolSupport) {
-				this.spawnPacketTouchVehicle = ClassBuilder.buildArmorStandSpawnPacket(touchVehicle);
-			} else {
-				this.spawnPacketTouchVehicle = ClassBuilder.buildWitherSkullSpawnPacket(touchVehicle);
-			}
-			if (Minecraft.VERSION.olderThan(Minecraft.Version.v1_9_R1)) {
-				this.attachPacketTouch = NMSClass.PacketPlayOutAttachEntity.getConstructor(Integer.class, NMSClass.Entity, NMSClass.Entity).newInstance(0, touchSlime, touchVehicle);
-				AccessUtil.setAccessible(NMSClass.PacketPlayOutAttachEntity.getDeclaredField("b")).set(attachPacketTouch, touchIDs[0]);
-				AccessUtil.setAccessible(NMSClass.PacketPlayOutAttachEntity.getDeclaredField("c")).set(attachPacketTouch, touchIDs[1]);
-			} else {
-				this.attachPacketTouch = NMSClass.PacketPlayOutAttachEntity.newInstance();
-				AccessUtil.setAccessible(NMSClass.PacketPlayOutAttachEntity.getDeclaredField("a")).set(attachPacketTouch, touchIDs[0]);
-				AccessUtil.setAccessible(NMSClass.PacketPlayOutAttachEntity.getDeclaredField("b")).set(attachPacketTouch, touchIDs[1]);
-			}
-			this.teleportPacketTouchSlime = ClassBuilder.buildTeleportPacket(touchIDs[0], getLocation().add(0.0D, -0.4D, 0.0D), true, false);
-			if (HologramAPI.is1_8 && !HologramAPI.useProtocolSupport) {
-				this.teleportPacketTouchVehicle = ClassBuilder.buildTeleportPacket(touchIDs[1], getLocation().add(0.0D, -1.85D, 0.0D), true, false);
-			} else {
-				this.teleportPacketTouchVehicle = ClassBuilder.buildTeleportPacket(touchIDs[1], getLocation().add(0.0D, -0.4D, 0.0D), true, false);
-			}
-			if (!rebuild) {
-				this.destroyPacketTouch = NMSClass.PacketPlayOutEntityDestroy.getConstructor(Integer.class).newInstance(touchIDs );
-			}
 		}
 		if (Minecraft.VERSION.olderThan(Minecraft.Version.v1_9_R1)) {
 			this.ridingAttachPacket = NMSClass.PacketPlayOutAttachEntity.newInstance();
@@ -203,6 +149,62 @@ abstract class CraftHologram implements Hologram {
 		}
 		if (!rebuild) {
 			this.destroyPacket = NMSClass.PacketPlayOutEntityDestroy.getConstructor(int[].class).newInstance(hologramIDs );
+		}
+	}
+	
+	public void buildTouch(boolean rebuild) throws Exception {
+		Object world = Reflection.getHandle(getLocation().getWorld());
+		int size = getText() == null ? 1 : getText().length() / 2 / 3;
+		Object touchSlime = ClassBuilder.buildEntitySlime(world, getLocation().add(0.0D, -0.4D, 0.0D), size);
+		this.dataWatcherTouchSlime = AccessUtil.setAccessible(NMSClass.Entity.getDeclaredField("datawatcher")).get(touchSlime);
+
+		Object touchVehicle = null;
+		if ((HologramAPI.is1_8) && (!HologramAPI.useProtocolSupport)) {
+			touchVehicle = ClassBuilder.buildEntityArmorStand(world, getLocation().add(0.0D, -1.85D, 0.0D), null);
+			this.dataWatcherTouchVehicle = AccessUtil.setAccessible(NMSClass.Entity.getDeclaredField("datawatcher")).get(touchVehicle);
+
+			ClassBuilder.setupArmorStand(touchVehicle);
+		} else {
+			touchVehicle = ClassBuilder.buildEntityWitherSkull(world, getLocation().add(0.0D, -0.4D, 0.0D));
+			this.dataWatcherTouchVehicle = AccessUtil.setAccessible(NMSClass.Entity.getDeclaredField("datawatcher")).get(touchVehicle);
+
+			DataWatcher.setValue(dataWatcherTouchVehicle, 0, DataWatcher.V1_9.ValueType.ENTITY_FLAG, (byte) 32);
+		}
+		if (rebuild) {
+			AccessUtil.setAccessible(NMSClass.Entity.getDeclaredField("id")).set(touchSlime, touchIDs[0]);
+			AccessUtil.setAccessible(NMSClass.Entity.getDeclaredField("id")).set(touchVehicle, touchIDs[1]);
+
+			Field entityCountField = AccessUtil.setAccessible(NMSClass.Entity.getDeclaredField("entityCount"));
+			entityCountField.set(null, ((int) entityCountField.get(null)) - 2);
+		} else {
+			this.touchIDs = new int[] {
+					AccessUtil.setAccessible(NMSClass.Entity.getDeclaredField("id")).getInt(touchSlime),
+					AccessUtil.setAccessible(NMSClass.Entity.getDeclaredField("id")).getInt(touchVehicle) 
+			};
+		}
+		this.spawnPacketTouchSlime = ClassBuilder.buildSlimeSpawnPacket(touchSlime);
+		if (HologramAPI.is1_8 && !HologramAPI.useProtocolSupport) {
+			this.spawnPacketTouchVehicle = ClassBuilder.buildArmorStandSpawnPacket(touchVehicle);
+		} else {
+			this.spawnPacketTouchVehicle = ClassBuilder.buildWitherSkullSpawnPacket(touchVehicle);
+		}
+		if (Minecraft.VERSION.olderThan(Minecraft.Version.v1_9_R1)) {
+			this.attachPacketTouch = NMSClass.PacketPlayOutAttachEntity.getConstructor(int.class, NMSClass.Entity, NMSClass.Entity).newInstance(0, touchSlime, touchVehicle);
+			AccessUtil.setAccessible(NMSClass.PacketPlayOutAttachEntity.getDeclaredField("b")).set(attachPacketTouch, touchIDs[0]);
+			AccessUtil.setAccessible(NMSClass.PacketPlayOutAttachEntity.getDeclaredField("c")).set(attachPacketTouch, touchIDs[1]);
+		} else {
+			this.attachPacketTouch = NMSClass.PacketPlayOutAttachEntity.newInstance();
+			AccessUtil.setAccessible(NMSClass.PacketPlayOutAttachEntity.getDeclaredField("a")).set(attachPacketTouch, touchIDs[0]);
+			AccessUtil.setAccessible(NMSClass.PacketPlayOutAttachEntity.getDeclaredField("b")).set(attachPacketTouch, touchIDs[1]);
+		}
+		this.teleportPacketTouchSlime = ClassBuilder.buildTeleportPacket(touchIDs[0], getLocation().add(0.0D, -0.4D, 0.0D), true, false);
+		if (HologramAPI.is1_8 && !HologramAPI.useProtocolSupport) {
+			this.teleportPacketTouchVehicle = ClassBuilder.buildTeleportPacket(touchIDs[1], getLocation().add(0.0D, -1.85D, 0.0D), true, false);
+		} else {
+			this.teleportPacketTouchVehicle = ClassBuilder.buildTeleportPacket(touchIDs[1], getLocation().add(0.0D, -0.4D, 0.0D), true, false);
+		}
+		if (!rebuild) {
+			this.destroyPacketTouch = NMSClass.PacketPlayOutEntityDestroy.getConstructor(int[].class).newInstance(touchIDs);
 		}
 	}
 

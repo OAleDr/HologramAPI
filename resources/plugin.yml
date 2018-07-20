@@ -1,0 +1,6 @@
+name: HologramAPI
+author: inventivetalent
+main: org.inventivetalent.hologram.HologramPlugin
+version: 1.6.2
+
+softdepend: [PacketListenerApi]
